@@ -1,73 +1,41 @@
 <template>
-  <div class="py-4 px-10 flex justify-between items-center">
-    <BarrioSelect :barrios="barriosData" v-model="selectedBarrio" />
-    <FilterModal v-model="filterModalVisible" @apply-filters="applyFilters" />
-    <SearchButton @click="performSearch" />
+  <!-- Contenedor principal del componente Filtro -->
+  <div class="py-2 px-10 flex flex-col md:flex-row justify-between items-center">
+    <!-- Menú desplegable para seleccionar barrio -->
+    <div class="mb-4 md:mb-0">
+      <select class="ml-2 bg-gray-800 text-white p-2 pr-2 rounded" v-model="selectedBarrio" @change="filterApartments">
+        <!-- Opción por defecto -->
+        <option value="todos">Seleccionar Barrio</option>
+        <!-- Iteración sobre la lista de barrios -->
+        <option v-for="barrio in barrios" :key="barrio.id" :value="barrio.name">{{ barrio.name }}</option>
+      </select>
+    </div>
+
+    <!-- Botón para abrir el modal de filtros -->
+    <button @click="openFilterModal" class="bg-gray-800 text-white px-4 py-2 rounded-md mt-4 md:mt-0">Filtros</button>
   </div>
 </template>
 
 <script>
-import BarrioSelect from "@/components/Filtros/BarrioSelect.vue";
-import FilterModal from "@/components/Filtros/FilterModal.vue";
-import SearchButton from "@/components/Filtros/SearchButton.vue";
-import axios from "axios";
-
 export default {
-  components: {
-    BarrioSelect,
-    FilterModal,
-    SearchButton,
-  },
-  props: {
-    barrios: {
-      type: Array,
-      required: true,
-    },
-  },
   data() {
     return {
-      selectedBarrio: null,
-      filterModalVisible: false,
-      priceRange: { min: null, max: null },
-      bedrooms: null,
-      guests: null,
-      barriosData: [], // Initialize barriosData as an empty array
+      selectedBarrio: 'todos', // Barrio seleccionado por defecto
     };
   },
-  computed: {
-    filteredApartments() {
-      // Filter the apartments based on the selected barrio
-      return this.apartments.filter(apartment => {
-        return !this.selectedBarrio || apartment.barrio.name === this.selectedBarrio;
-      });
-    },
-  },
-  mounted() {
-    // Fetch barrios data when the component is mounted
-    this.fetchBarrios();
+  // Propiedades recibidas desde el componente padre
+  props: {
+    barrios: Array,
   },
   methods: {
-    async fetchBarrios() {
-      try {
-        const response = await axios.get("https://api.dev.myplazze.com/api/v1/practice/barrios");
-        // Assuming the response contains an array of barrios
-        this.barriosData = response.data; // Update barriosData
-        this.$emit("update-barrios", this.barriosData);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching barrios:", error);
-      }
+    // Emitir evento al cambiar la selección del barrio
+    filterApartments() {
+      this.$emit('barrio-selected', this.selectedBarrio);
     },
-    performSearch() {
-      // ... your existing search logic
-    },
-    applyFilters(filters) {
-      // ... your existing filter logic
-    },
-    // Define a function to be passed to ApartmentCard.vue
-    handleClickOnApartment(apartment) {
-      // Your logic when an apartment card is clicked
-      console.log("Apartment clicked:", apartment);
+    
+    // Emitir evento al hacer clic en el botón de filtros
+    openFilterModal() {
+      this.$emit('open-modal');
     },
   },
 };
